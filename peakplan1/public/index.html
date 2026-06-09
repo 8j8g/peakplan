@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeakPlan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon2.png" type="image/png">
+</head>
+
+<style>
+:root {
+  --bg: #0F0E0C;
+  --bg2: #161410;
+  --surface: #1C1917;
+  --surface2: #242118;
+  --border: #2E2A24;
+  --gold: #C9A84C;
+  --gold2: #E8C96A;
+  --cream: #F5F0E8;
+  --text: #E8E0D0;
+  --text-muted: #7A7060;
+  --text-dim: #4A4438;
+  --accent: #C9A84C;
+  --danger: #C47070;
+  --success: #6B9E78;
+  --warning: #C9A84C;
+  --radius: 14px;
+  --shadow: 0 4px 30px rgba(0,0,0,0.4);
+}
+
+.settings-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+  align-content: start !important;
+  width: 100% !important;
+}
+
+.card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.setting-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+[dir="rtl"] .settings-grid { direction: rtl !important; }
+[dir="rtl"] .card { text-align: right !important; }
+[dir="rtl"] .setting-row { align-items: flex-start !important; }
+[dir="rtl"] * { font-family: 'Outfit', 'Segoe UI', sans-serif; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ══ LICENSE SCREEN ══ */
+#licenseScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+
+.license-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 20%, rgba(201,168,76,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.license-container {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 440px;
+  padding: 20px;
+}
+
+.license-logo {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.license-logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 56px; font-weight: 700;
+  color: var(--cream);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.license-logo-text span { color: var(--gold); }
+
+.license-logo-sub {
+  font-size: 12px; color: var(--text-muted);
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.license-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.license-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  color: var(--cream); text-align: center;
+  margin-bottom: 8px;
+}
+
+.license-sub {
+  font-size: 13px; color: var(--text-muted);
+  text-align: center; margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.license-field { margin-bottom: 16px; }
+
+.license-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 8px; display: block;
+}
+
+.license-input {
+  width: 100%; padding: 14px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Outfit', monospace; font-size: 15px;
+  color: var(--text); outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.license-input:focus { border-color: var(--gold); }
+.license-input::placeholder { color: var(--text-dim); text-transform: none; letter-spacing: 0; }
+
+.license-btn {
+  width: 100%; padding: 14px;
+  background: var(--gold);
+  color: #0F0E0C;
+  border: none; border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+  transition: all 0.2s; letter-spacing: 0.5px;
+}
+
+.license-btn:hover { background: var(--gold2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,0.3); }
+.license-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.license-error {
+  background: rgba(196,112,112,0.1);
+  border: 1px solid rgba(196,112,112,0.3);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: var(--danger);
+  margin-top: 12px; display: none; text-align: center;
+}
+
+.license-footer {
+  text-align: center; margin-top: 24px;
+  font-size: 12px; color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.license-footer a {
+  color: var(--gold); text-decoration: none;
+}
+
+.license-footer a:hover { text-decoration: underline; }
+
+.license-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0; color: var(--text-dim); font-size: 12px;
+}
+
+.license-divider::before, .license-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* ══ APP LAYOUT ══ */
+#app { display: none; min-height: 100vh; }
+
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 240px; min-height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; left: 0; top: 0; bottom: 0;
+  z-index: 100; transition: transform 0.3s;
+}
+
+[dir="rtl"] .sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); }
+
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--cream); letter-spacing: 1px;
+}
+
+.sidebar-logo-text span { color: var(--gold); }
+
+.sidebar-user {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.user-avatar {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #0F0E0C;
+  flex-shrink: 0;
+}
+
+.user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.user-plan { font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+
+.sidebar-nav { flex: 1; padding: 16px 12px; }
+
+.nav-section {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 2px; padding: 0 12px;
+  margin: 16px 0 8px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.15s; margin-bottom: 2px;
+}
+
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold); }
+.nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-bottom {
+  padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.lang-select {
+  width: 100%; padding: 9px 12px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: 'Outfit', sans-serif; font-size: 12px;
+  outline: none; cursor: pointer; margin-bottom: 8px;
+}
+
+.logout-btn {
+  width: 100%; padding: 9px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-muted);
+  font-family: 'Outfit', sans-serif; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+
+.logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+.main-content {
+  margin-left: 240px; flex: 1;
+  padding: 40px; min-height: 100vh;
+}
+
+[dir="rtl"] .main-content { margin-left: 0; margin-right: 240px; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 36px;
+}
+
+.page-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px; font-weight: 700; color: var(--cream);
+  line-height: 1;
+}
+
+.page-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.date-badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 12px; color: var(--text-muted);
+}
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: var(--gold); }
+
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 40px; font-weight: 700;
+  color: var(--cream); line-height: 1;
+}
+
+.stat-label { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.stat-icon { position: absolute; top: 16px; right: 16px; font-size: 20px; opacity: 0.4; }
+
+.form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
+.form-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+input[type="text"], input[type="date"], input[type="number"], input[type="password"], select, textarea {
+  padding: 10px 14px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'Outfit', sans-serif; font-size: 13px;
+  color: var(--text); outline: none; width: 100%;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--gold); }
+input::placeholder, textarea::placeholder { color: var(--text-dim); }
+select option { background: var(--surface); }
+
+.btn {
+  padding: 10px 20px; border: none; border-radius: 8px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+.btn-gold { background: var(--gold); color: #0F0E0C; font-weight: 600; }
+.btn-gold:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+.btn-danger { background: rgba(196,112,112,0.1); color: var(--danger); border: 1px solid rgba(196,112,112,0.2); font-size: 12px; padding: 6px 12px; }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.month-nav-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.month-nav-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--cream); }
+.month-nav-btns { display: flex; gap: 8px; }
+.month-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.month-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.habit-table-wrap { overflow-x: auto; }
+
+table.habit-tbl { width: 100%; border-collapse: collapse; min-width: 800px; }
+table.habit-tbl th { padding: 8px 5px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); text-align: center; background: var(--bg2); }
+table.habit-tbl th:first-child { text-align: left; padding-left: 14px; min-width: 160px; border-radius: 8px 0 0 8px; }
+table.habit-tbl th:last-child { border-radius: 0 8px 8px 0; }
+table.habit-tbl td { text-align: center; padding: 7px 4px; border-bottom: 1px solid var(--border); }
+table.habit-tbl td:first-child { text-align: left; padding-left: 14px; }
+table.habit-tbl tr:hover td { background: rgba(255,255,255,0.02); }
+table.habit-tbl input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--gold); cursor: pointer; }
+
+.habit-name-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text); }
+.habit-del { background: none; border: none; cursor: pointer; color: var(--text-dim); font-size: 14px; line-height: 1; transition: color 0.2s; }
+.habit-del:hover { color: var(--danger); }
+.habit-total { font-weight: 700; color: var(--gold); font-size: 13px; }
+
+.pbar { height: 3px; background: var(--border); border-radius: 10px; overflow: hidden; width: 50px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+.pbar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 10px; }
+
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+
+.task-row {
+  display: grid; grid-template-columns: 24px 1fr 100px 110px 110px 70px;
+  align-items: center; gap: 12px;
+  padding: 13px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  transition: all 0.2s; font-size: 13px;
+}
+
+.task-row:hover { border-color: var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.3); transform: translateY(-1px); }
+.task-row.done { opacity: 0.5; }
+.task-row.done .task-name { text-decoration: line-through; color: var(--text-muted); }
+
+.task-cb { width: 16px; height: 16px; accent-color: var(--success); cursor: pointer; }
+.task-name { font-weight: 500; color: var(--text); }
+
+.task-hdr {
+  display: grid; grid-template-columns: 24px 1fr 100px 110px 110px 70px;
+  gap: 12px; padding: 8px 16px; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.b-high { background: rgba(196,112,112,0.15); color: #e09090; }
+.b-mid { background: rgba(201,168,76,0.15); color: var(--gold); }
+.b-low { background: rgba(107,158,120,0.15); color: #8abe9a; }
+.b-done { background: rgba(107,158,120,0.15); color: #8abe9a; }
+.b-inprogress { background: rgba(201,168,76,0.15); color: var(--gold); }
+.b-pending { background: rgba(100,150,200,0.15); color: #90b8e0; }
+.b-cancelled { background: rgba(196,112,112,0.15); color: #e09090; }
+
+.goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+.goal-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; position: relative;
+  transition: all 0.2s;
+}
+
+.goal-card:hover { border-color: var(--gold); box-shadow: 0 4px 20px rgba(201,168,76,0.1); }
+.goal-cat { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+.goal-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--cream); margin-bottom: 14px; }
+.goal-pct { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.goal-bar { height: 4px; background: var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.goal-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 10px; }
+.goal-deadline { font-size: 11px; color: var(--text-dim); }
+.goal-del { position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-dim); font-size: 16px; transition: color 0.2s; }
+.goal-del:hover { color: var(--danger); }
+
+.ai-chat { display: flex; flex-direction: column; height: 500px; }
+.ai-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.ai-messages::-webkit-scrollbar { width: 4px; }
+.ai-messages::-webkit-scrollbar-track { background: var(--bg2); }
+.ai-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.msg { display: flex; gap: 10px; max-width: 85%; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg.ai { align-self: flex-start; }
+
+.msg-avatar {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}
+
+.msg.ai .msg-avatar { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+.msg.user .msg-avatar { background: var(--bg2); border: 1px solid var(--border); color: var(--text-muted); }
+
+.msg-bubble {
+  padding: 11px 14px; border-radius: 12px;
+  font-size: 13px; line-height: 1.6; color: var(--text);
+}
+
+.msg.ai .msg-bubble { background: var(--surface2); border: 1px solid var(--border); border-top-left-radius: 4px; }
+.msg.user .msg-bubble { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); color: var(--text); border-top-right-radius: 4px; }
+
+.ai-input-row {
+  display: flex; gap: 10px; padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.ai-input {
+  flex: 1; padding: 11px 14px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'Outfit', sans-serif; font-size: 13px;
+  color: var(--text); outline: none; transition: border-color 0.2s;
+  resize: none;
+}
+
+.ai-input:focus { border-color: var(--gold); }
+
+.ai-send { background: var(--gold); color: #0F0E0C; border: none; border-radius: 8px; padding: 11px 16px; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+.ai-send:hover { background: var(--gold2); }
+.ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ai-typing { display: none; align-items: center; gap: 6px; padding: 10px 14px; }
+.ai-typing span { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: typing 1.2s infinite; }
+.ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+.quick-prompts { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 16px 12px; }
+.qp-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
+.qp-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.setting-section { font-size: 13px; font-weight: 600; color: var(--cream); margin-bottom: 16px; }
+.setting-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+
+.color-swatches { display: flex; gap: 8px; }
+.cswatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+.cswatch.active { border-color: var(--cream); transform: scale(1.15); }
+
+.empty { text-align: center; padding: 50px 20px; color: var(--text-dim); }
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+.empty-text { font-size: 13px; }
+
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 18px;
+  font-size: 13px; color: var(--text);
+  box-shadow: var(--shadow);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.3s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.emoji-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.emoji-opt { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 15px; transition: all 0.15s; }
+.emoji-opt:hover, .emoji-opt.sel { background: rgba(201,168,76,0.15); border-color: var(--gold); }
+
+.mobile-header { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  [dir="rtl"] .sidebar { transform: translateX(100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; margin-right: 0; padding: 16px; }
+  .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .hamburger { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .task-row { grid-template-columns: 24px 1fr 80px; }
+  .task-row > *:nth-child(n+4) { display: none; }
+  .task-hdr { display: none; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .goal-form-row { grid-template-columns: 1fr; }
+  .form-row { flex-direction: column; }
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.section.active { animation: fadeUp 0.3s ease; }
+
+/* shake animation for wrong key */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.shake { animation: shake 0.4s ease; }
+</style>
+
+<!-- ══ LICENSE SCREEN ══ -->
+<div id="licenseScreen">
+  <div class="license-bg"></div>
+  <div class="license-container">
+    <div class="license-logo">
+      <div class="license-logo-text">Peak<span>Plan</span></div>
+      <div class="license-logo-sub">Productivity Suite</div>
+    </div>
+    <div class="license-card">
+      <div class="license-title">Enter Your License Key</div>
+      <div class="license-sub">Enter the key you received after purchasing from Whop or Gumroad to unlock the app.</div>
+      <div class="license-field">
+        <label class="license-label">License Key</label>
+        <input type="text" class="license-input" id="licenseInput" placeholder="PEAK-XXXX-XXXX-XXXX" maxlength="30">
+      </div>
+      <button class="license-btn" id="licenseBtn" onclick="verifyLicense()">Unlock PeakPlan →</button>
+      <div class="license-error" id="licenseError">❌ Invalid license key. Please check and try again.</div>
+      <div class="license-divider">purchase</div>
+      <div style="display:flex;gap:10px">
+        <a href="https://whop.com" target="_blank" style="flex:1;padding:11px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-muted);font-size:13px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">🛒 Buy on Whop</a>
+        <a href="https://gumroad.com" target="_blank" style="flex:1;padding:11px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center;color:var(--text-muted);font-size:13px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">🛒 Buy on Gumroad</a>
+      </div>
+    </div>
+    <div class="license-footer">
+      One key · One device · Lifetime access<br>
+      <span style="opacity:0.6">Having trouble? Contact support.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-text">Peak<span>Plan</span></div>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <div>
+          <div class="user-name" id="userName">User</div>
+          <div class="user-plan">✦ Pro</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section" id="nav-main-label">Main</div>
+        <div class="nav-item active" onclick="switchPage('dashboard', this)">
+          <span class="nav-icon">⌂</span><span id="nav-dashboard">Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('habits', this)">
+          <span class="nav-icon">◉</span><span id="nav-habits">Habits</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('tasks', this)">
+          <span class="nav-icon">✓</span><span id="nav-tasks">Tasks</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('goals', this)">
+          <span class="nav-icon">◎</span><span id="nav-goals">Goals</span>
+        </div>
+        <div class="nav-section" id="nav-tools-label">Tools</div>
+        <div class="nav-item" onclick="switchPage('ai', this)">
+          <span class="nav-icon">✦</span><span id="nav-ai">AI Coach</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('settings', this)">
+          <span class="nav-icon">⚙</span><span id="nav-settings">Settings</span>
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <select class="lang-select" onchange="setLang(this.value)">
+          <option value="en">🌐 English</option>
+          <option value="ar">🌐 العربية</option>
+          <option value="es">🌐 Español</option>
+          <option value="fr">🌐 Français</option>
+          <option value="tr">🌐 Türkçe</option>
+        </select>
+        <button class="logout-btn" onclick="lockApp()">🔒 Lock / Sign Out</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+      <div class="mobile-header">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--cream)">Peak<span style="color:var(--gold)">Plan</span></div>
+        <div style="width:32px"></div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="section active" id="sec-dashboard">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="dash-title">Good morning ✦</div>
+            <div class="page-sub" id="dash-sub">Here's your productivity overview</div>
+          </div>
+          <div class="topbar-right">
+            <div class="date-badge" id="topDate"></div>
+          </div>
+        </div>
+        <div class="stats-grid" id="dashStats">
+          <div class="stat-card"><div class="stat-icon">◉</div><div class="stat-num" id="ds-habits">0</div><div class="stat-label" id="ds-habits-l">Active Habits</div></div>
+          <div class="stat-card"><div class="stat-icon">✓</div><div class="stat-num" id="ds-tasks">0</div><div class="stat-label" id="ds-tasks-l">Tasks Done</div></div>
+          <div class="stat-card"><div class="stat-icon">◎</div><div class="stat-num" id="ds-goals">0</div><div class="stat-label" id="ds-goals-l">Active Goals</div></div>
+          <div class="stat-card"><div class="stat-icon">%</div><div class="stat-num" id="ds-streak">0%</div><div class="stat-label" id="ds-streak-l">Completion Rate</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div class="card">
+            <div class="card-title" id="dash-upcoming">Upcoming Tasks</div>
+            <div id="dashTasks"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" id="dash-today-habits">Today's Habits</div>
+            <div id="dashHabits"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HABITS -->
+      <div class="section" id="sec-habits">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="habits-title">Habit Tracker</div>
+            <div class="page-sub" id="habits-sub">Build consistency day by day</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" id="add-habit-label">New Habit</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2">
+              <label class="form-label" id="habit-name-label">Habit Name</label>
+              <input type="text" id="newHabitName" placeholder="e.g. Morning run...">
+            </div>
+            <div class="form-group" style="flex:0;min-width:200px">
+              <label class="form-label" id="habit-icon-label">Icon</label>
+              <div class="emoji-row">
+                <span class="emoji-opt sel" data-e="⭐" onclick="selEmoji(this)">⭐</span>
+                <span class="emoji-opt" data-e="💪" onclick="selEmoji(this)">💪</span>
+                <span class="emoji-opt" data-e="📖" onclick="selEmoji(this)">📖</span>
+                <span class="emoji-opt" data-e="💧" onclick="selEmoji(this)">💧</span>
+                <span class="emoji-opt" data-e="🧘" onclick="selEmoji(this)">🧘</span>
+                <span class="emoji-opt" data-e="🏃" onclick="selEmoji(this)">🏃</span>
+                <span class="emoji-opt" data-e="🌿" onclick="selEmoji(this)">🌿</span>
+                <span class="emoji-opt" data-e="✍️" onclick="selEmoji(this)">✍️</span>
+                <span class="emoji-opt" data-e="🍎" onclick="selEmoji(this)">🍎</span>
+                <span class="emoji-opt" data-e="😴" onclick="selEmoji(this)">😴</span>
+              </div>
+            </div>
+            <div class="form-group" style="flex:0;min-width:120px">
+              <label class="form-label">&nbsp;</label>
+              <button class="btn btn-gold" onclick="addHabit()" id="add-habit-btn">+ Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="month-nav-bar">
+            <div class="month-nav-title" id="monthTitle"></div>
+            <div class="month-nav-btns">
+              <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+              <button class="month-btn" onclick="changeMonth(1)">›</button>
+            </div>
+          </div>
+          <div class="habit-table-wrap">
+            <table class="habit-tbl" id="habitGrid">
+              <thead id="habitHead"></thead>
+              <tbody id="habitBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="habitEmpty" style="display:none">
+            <div class="empty-icon">🌱</div>
+            <div class="empty-text" id="no-habits-text">No habits yet. Add your first one!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TASKS -->
+      <div class="section" id="sec-tasks">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="tasks-title">Task Manager</div>
+            <div class="page-sub" id="tasks-sub">Organize and conquer your to-do list</div>
+          </div>
+        </div>
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card"><div class="stat-icon">Σ</div><div class="stat-num" id="st-total">0</div><div class="stat-label" id="st-total-l">Total</div></div>
+          <div class="stat-card"><div class="stat-icon">✓</div><div class="stat-num" id="st-done">0</div><div class="stat-label" id="st-done-l">Done</div></div>
+          <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-num" id="st-prog">0</div><div class="stat-label" id="st-prog-l">In Progress</div></div>
+          <div class="stat-card"><div class="stat-icon">📌</div><div class="stat-num" id="st-pend">0</div><div class="stat-label" id="st-pend-l">Pending</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title" id="add-task-label">New Task</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:3"><label class="form-label" id="task-name-l">Task</label><input type="text" id="taskName" placeholder="What needs to be done?"></div>
+            <div class="form-group"><label class="form-label" id="task-pri-l">Priority</label><select id="taskPri"><option value="high" id="pri-high">🔴 High</option><option value="mid" selected id="pri-mid">🟡 Medium</option><option value="low" id="pri-low">🟢 Low</option></select></div>
+            <div class="form-group"><label class="form-label" id="task-date-l">Due Date</label><input type="date" id="taskDate"></div>
+            <div class="form-group"><label class="form-label" id="task-status-l">Status</label><select id="taskStatus"><option value="inprogress" id="s-inprog">⏳ In Progress</option><option value="pending" id="s-pend">📌 Pending</option><option value="done" id="s-done">✅ Done</option><option value="cancelled" id="s-cancel">❌ Cancelled</option></select></div>
+            <div class="form-group" style="flex:0;min-width:80px"><label class="form-label">&nbsp;</label><button class="btn btn-gold" onclick="addTask()" id="add-task-btn">+ Add</button></div>
+          </div>
+          <div class="task-hdr" id="taskHdr">
+            <span></span><span id="th-task">Task</span><span id="th-pri">Priority</span><span id="th-date">Due</span><span id="th-status">Status</span><span id="th-del">Delete</span>
+          </div>
+          <div class="task-list" id="taskList"></div>
+          <div class="empty" id="taskEmpty" style="display:none"><div class="empty-icon">📝</div><div class="empty-text" id="no-tasks-text">No tasks yet!</div></div>
+        </div>
+      </div>
+
+      <!-- GOALS -->
+      <div class="section" id="sec-goals">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="goals-title">Goals</div>
+            <div class="page-sub" id="goals-sub">Set milestones, track your journey</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" id="add-goal-label">New Goal</div>
+          <div class="form-row goal-form-row">
+            <div class="form-group" style="flex:3"><label class="form-label" id="goal-name-l">Goal</label><input type="text" id="goalName" placeholder="e.g. Run 5km every week"></div>
+            <div class="form-group"><label class="form-label" id="goal-cat-l">Category</label><select id="goalCat"><option id="gc-health">Health</option><option id="gc-finance">Finance</option><option id="gc-learn">Learning</option><option id="gc-career">Career</option><option id="gc-personal">Personal</option><option id="gc-other">Other</option></select></div>
+            <div class="form-group" style="flex:0;min-width:100px"><label class="form-label" id="goal-pct-l">Progress %</label><input type="number" id="goalPct" placeholder="0" min="0" max="100"></div>
+            <div class="form-group" style="flex:0;min-width:130px"><label class="form-label" id="goal-dl-l">Deadline</label><input type="date" id="goalDL"></div>
+            <div class="form-group" style="flex:0;min-width:80px"><label class="form-label">&nbsp;</label><button class="btn btn-gold" onclick="addGoal()" id="add-goal-btn">+ Add</button></div>
+          </div>
+        </div>
+        <div class="goals-grid" id="goalsGrid"></div>
+        <div class="empty" id="goalEmpty"><div class="empty-icon">🎯</div><div class="empty-text" id="no-goals-text">No goals yet. Dream big!</div></div>
+      </div>
+
+      <!-- AI COACH -->
+      <div class="section" id="sec-ai">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="ai-title">AI Coach ✦</div>
+            <div class="page-sub" id="ai-sub">Your personal productivity assistant</div>
+          </div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="quick-prompts" style="padding:16px 16px 0">
+            <button class="qp-btn" onclick="quickPrompt(this)" id="qp1">💡 Analyze my habits</button>
+            <button class="qp-btn" onclick="quickPrompt(this)" id="qp2">📋 Suggest tasks for today</button>
+            <button class="qp-btn" onclick="quickPrompt(this)" id="qp3">🎯 Help me set a goal</button>
+            <button class="qp-btn" onclick="quickPrompt(this)" id="qp4">⚡ How to be more productive?</button>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-messages" id="aiMessages">
+              <div class="msg ai">
+                <div class="msg-avatar">✦</div>
+                <div class="msg-bubble" id="ai-welcome">Hi! I'm your PeakPlan AI Coach. I can analyze your habits, suggest tasks, help you set goals, and give you personalized productivity advice. How can I help you today?</div>
+              </div>
+            </div>
+            <div class="ai-typing" id="aiTyping">
+              <div class="msg-avatar" style="width:30px;height:30px;border-radius:50%;background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:13px;">✦</div>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="ai-input-row">
+              <textarea class="ai-input" id="aiInput" placeholder="Ask your AI Coach anything..." rows="1"></textarea>
+              <button class="ai-send" id="aiSendBtn" onclick="sendAI()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="section" id="sec-settings">
+        <div class="topbar">
+          <div>
+            <div class="page-title" id="settings-title">Settings</div>
+            <div class="page-sub" id="settings-sub">Customize your experience</div>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div class="card">
+            <div class="setting-section" id="set-appear">🎨 Appearance</div>
+            <div class="setting-row">
+              <label class="setting-label" id="set-theme-l">Theme</label>
+              <div class="color-swatches">
+                <div class="cswatch active" style="background: linear-gradient(135deg, #C9A84C, #0F0E0C)" data-bg="#0F0E0C" data-s="#1C1917" data-s2="#242118" data-b="#2E2A24" data-g="#C9A84C" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #4AAECC, #0C1418)" data-bg="#0C1418" data-s="#131C22" data-s2="#1A2530" data-b="#243040" data-g="#4AAECC" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #82C462, #0E140C)" data-bg="#0E140C" data-s="#141C10" data-s2="#1C2618" data-b="#283420" data-g="#82C462" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #C49AE0, #140F1A)" data-bg="#140F1A" data-s="#1C1424" data-s2="#241C30" data-b="#302040" data-g="#C49AE0" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #E07070, #180C0C)" data-bg="#180C0C" data-s="#221010" data-s2="#2C1414" data-b="#401818" data-g="#E07070" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #FFFFFF, #E8E0D0)" data-bg="#F5F0E8" data-s="#FFFFFF" data-s2="#E8E0D0" data-b="#E0D8C8" data-g="#0F0E0C" onclick="applyTheme(this)"></div>
+                <div class="cswatch" style="background: linear-gradient(135deg, #000000, #1A1A1A)" data-bg="#000000" data-s="#0A0A0A" data-s2="#121212" data-b="#222222" data-g="#FFFFFF" onclick="applyTheme(this)"></div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label" id="set-name-l">Display Name</label>
+              <input type="text" id="setName" placeholder="Your name">
+            </div>
+            <button class="btn btn-gold" onclick="saveSettings()" id="save-settings-btn" style="margin-top:8px;">Save Changes</button>
+          </div>
+          <div class="card">
+            <div class="setting-section" id="set-data">📊 Data</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+              <button class="btn btn-ghost btn-sm" onclick="exportData()" id="export-btn">⬇️ Export</button>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer" id="import-btn">⬆️ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+              <button class="btn btn-danger btn-sm" onclick="clearAll()" id="clear-btn">🗑️ Clear All</button>
+            </div>
+            <div style="margin-top:24px">
+              <div class="setting-section">🔑 License</div>
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Your license key is active. To use on a different device, lock and re-enter your key there.</p>
+              <button class="btn btn-ghost btn-sm" onclick="lockApp()">🔒 Lock App</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// ✅ ADD YOUR LICENSE KEYS HERE
+// Each key you sell on Whop / Gumroad goes in this list
+// ══════════════════════════════════════════════════════
+const VALID_KEYS = [
+  'PEAK-2026-PRO',
+  'PEAK-DEMO-001',
+  'PEAK-VIP-999',
+  // Add more keys below:
+  // 'PEAK-XXXX-XXXX',
+];
+// ══════════════════════════════════════════════════════
+
+// ── LICENSE AUTH ──
+function verifyLicense() {
+  const input = document.getElementById('licenseInput');
+  const key = input.value.trim().toUpperCase();
+  const errEl = document.getElementById('licenseError');
+  const btn = document.getElementById('licenseBtn');
+
+  if (!key) { shakeCard(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  // Small delay for UX
+  setTimeout(() => {
+    if (VALID_KEYS.includes(key)) {
+      localStorage.setItem('pp_license', key);
+      localStorage.setItem('pp_licensed', 'true');
+      initApp(key);
+    } else {
+      errEl.style.display = 'block';
+      shakeCard();
+      btn.disabled = false;
+      btn.textContent = 'Unlock PeakPlan →';
+      input.focus();
+      input.select();
+    }
+  }, 600);
+}
+
+function shakeCard() {
+  const card = document.querySelector('.license-card');
+  card.classList.remove('shake');
+  void card.offsetWidth;
+  card.classList.add('shake');
+}
+
+function lockApp() {
+  if (!confirm('Lock the app? You will need to enter your license key again.')) return;
+  localStorage.removeItem('pp_licensed');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('licenseScreen').style.display = 'flex';
+  document.getElementById('licenseInput').value = '';
+  document.getElementById('licenseError').style.display = 'none';
+  document.getElementById('licenseBtn').disabled = false;
+  document.getElementById('licenseBtn').textContent = 'Unlock PeakPlan →';
+}
+
+// Check on load
+window.addEventListener('DOMContentLoaded', () => {
+  const licensed = localStorage.getItem('pp_licensed');
+  const key = localStorage.getItem('pp_license');
+  if (licensed === 'true' && key && VALID_KEYS.includes(key)) {
+    initApp(key);
+  }
+  // Enter key on input
+  document.getElementById('licenseInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verifyLicense();
+  });
+});
+
+// ── I18N ──
+const T = {
+  en: {
+    dashboard:'Dashboard', habits:'Habits', tasks:'Tasks', goals:'Goals',
+    ai:'AI Coach', settings:'Settings', main:'Main', tools:'Tools',
+    'dash-title':'Good morning ✦', 'dash-sub':'Here\'s your productivity overview',
+    'dash-upcoming':'Upcoming Tasks', 'dash-today-habits':'Today\'s Habits',
+    'habits-title':'Habit Tracker', 'habits-sub':'Build consistency day by day',
+    'tasks-title':'Task Manager', 'tasks-sub':'Organize and conquer your to-do list',
+    'goals-title':'Goals', 'goals-sub':'Set milestones, track your journey',
+    'ai-title':'AI Coach ✦', 'ai-sub':'Your personal productivity assistant',
+    'settings-title':'Settings', 'settings-sub':'Customize your experience',
+    'add-habit':'New Habit', 'habit-name':'Habit Name', 'habit-icon':'Icon', 'add':'+ Add',
+    'add-task':'New Task', 'task':'Task', 'priority':'Priority', 'due':'Due Date', 'status':'Status',
+    'add-goal':'New Goal', 'goal':'Goal', 'category':'Category', 'progress':'Progress %', 'deadline':'Deadline',
+    'active-habits':'Active Habits', 'tasks-done':'Tasks Done', 'active-goals':'Active Goals', 'completion':'Completion Rate',
+    'no-habits':'No habits yet. Add your first one!', 'no-tasks':'No tasks yet!', 'no-goals':'No goals yet. Dream big!',
+    'appear':'🎨 Appearance', 'theme':'Theme', 'display-name':'Display Name', 'save':'Save Changes',
+    'data':'📊 Data', 'export':'⬇ Export', 'import':'⬆ Import', 'clear':'🗑 Clear All',
+    high:'🔴 High', mid:'🟡 Medium', low:'🟢 Low',
+    done:'✅ Done', inprogress:'⏳ In Progress', pending:'📌 Pending', cancelled:'❌ Cancelled',
+    health:'Health', finance:'Finance', learning:'Learning', career:'Career', personal:'Personal', other:'Other',
+    'th-task':'Task', 'th-pri':'Priority', 'th-due':'Due', 'th-status':'Status', 'th-del':'Delete',
+    'qp1':'💡 Analyze my habits', 'qp2':'📋 Suggest tasks for today', 'qp3':'🎯 Help me set a goal', 'qp4':'⚡ How to be more productive?',
+    'ai-welcome':'Hi! I\'m your PeakPlan AI Coach. How can I help you today?',
+    'ask-placeholder':'Ask your AI Coach anything...',
+    'habit-added':'Habit added ✓', 'task-added':'Task added ✓', 'goal-added':'Goal added ✓',
+    'settings-saved':'Settings saved ✓', 'exported':'Data exported ✓', 'imported':'Data imported ✓', 'cleared':'Data cleared',
+    'enter-habit':'Please enter a habit name', 'enter-task':'Please enter a task name', 'enter-goal':'Please enter a goal',
+  },
+  ar: {
+    dir:'rtl',
+    dashboard:'الرئيسية', habits:'العادات', tasks:'المهام', goals:'الأهداف',
+    ai:'مدرب AI', settings:'الإعدادات', main:'القائمة', tools:'الأدوات',
+    'dash-title':'صباح الخير ✦', 'dash-sub':'نظرة عامة على إنتاجيتك',
+    'dash-upcoming':'المهام القادمة', 'dash-today-habits':'عادات اليوم',
+    'habits-title':'متابعة العادات', 'habits-sub':'ابنِ الاتساق يوماً بيوم',
+    'tasks-title':'إدارة المهام', 'tasks-sub':'نظّم مهامك وأنجزها',
+    'goals-title':'الأهداف', 'goals-sub':'ضع معالم وتابع رحلتك',
+    'ai-title':'مدرب الذكاء الاصطناعي ✦', 'ai-sub':'مساعدك الشخصي للإنتاجية',
+    'settings-title':'الإعدادات', 'settings-sub':'خصّص تجربتك',
+    'add-habit':'عادة جديدة', 'habit-name':'اسم العادة', 'habit-icon':'أيقونة', 'add':'+ إضافة',
+    'add-task':'مهمة جديدة', 'task':'المهمة', 'priority':'الأولوية', 'due':'تاريخ التسليم', 'status':'الحالة',
+    'add-goal':'هدف جديد', 'goal':'الهدف', 'category':'الفئة', 'progress':'النسبة %', 'deadline':'الموعد النهائي',
+    'active-habits':'عادات نشطة', 'tasks-done':'مهام منجزة', 'active-goals':'أهداف نشطة', 'completion':'معدل الإنجاز',
+    'no-habits':'لا توجد عادات. أضف أولى عاداتك!', 'no-tasks':'لا توجد مهام بعد!', 'no-goals':'لا أهداف بعد. فكّر بكبر!',
+    'appear':'🎨 المظهر', 'theme':'الثيم', 'display-name':'الاسم المعروض', 'save':'حفظ التغييرات',
+    'data':'📊 البيانات', 'export':'⬇ تصدير', 'import':'⬆ استيراد', 'clear':'🗑 مسح الكل',
+    high:'🔴 عالية', mid:'🟡 متوسطة', low:'🟢 منخفضة',
+    done:'✅ منجزة', inprogress:'⏳ قيد التنفيذ', pending:'📌 معلقة', cancelled:'❌ ملغاة',
+    health:'صحة', finance:'مالية', learning:'تعلم', career:'مسار مهني', personal:'شخصي', other:'أخرى',
+    'th-task':'المهمة', 'th-pri':'الأولوية', 'th-due':'التاريخ', 'th-status':'الحالة', 'th-del':'حذف',
+    'qp1':'💡 حلّل عاداتي', 'qp2':'📋 اقترح مهام اليوم', 'qp3':'🎯 ساعدني في تحديد هدف', 'qp4':'⚡ كيف أكون أكثر إنتاجية؟',
+    'ai-welcome':'مرحباً! أنا مدرب الذكاء الاصطناعي من PeakPlan. كيف يمكنني مساعدتك؟',
+    'ask-placeholder':'اسأل مدربك...',
+    'habit-added':'تمت إضافة العادة ✓', 'task-added':'تمت إضافة المهمة ✓', 'goal-added':'تمت إضافة الهدف ✓',
+    'settings-saved':'تم حفظ الإعدادات ✓', 'exported':'تم التصدير ✓', 'imported':'تم الاستيراد ✓', 'cleared':'تم مسح البيانات',
+    'enter-habit':'أدخل اسم العادة', 'enter-task':'أدخل اسم المهمة', 'enter-goal':'أدخل الهدف',
+  },
+  es: {
+    dashboard:'Inicio', habits:'Hábitos', tasks:'Tareas', goals:'Metas', ai:'Coach IA', settings:'Ajustes', main:'Principal', tools:'Herramientas',
+    'dash-title':'Buenos días ✦','dash-sub':'Resumen de tu productividad','dash-upcoming':'Próximas tareas','dash-today-habits':'Hábitos de hoy',
+    'habits-title':'Seguimiento de hábitos','habits-sub':'Construye consistencia día a día',
+    'tasks-title':'Gestión de tareas','tasks-sub':'Organiza y conquista tu lista',
+    'goals-title':'Metas','goals-sub':'Establece hitos y sigue tu camino',
+    'ai-title':'Coach IA ✦','ai-sub':'Tu asistente personal de productividad',
+    'settings-title':'Ajustes','settings-sub':'Personaliza tu experiencia',
+    'add-habit':'Nuevo hábito','habit-name':'Nombre del hábito','habit-icon':'Ícono','add':'+ Agregar',
+    'add-task':'Nueva tarea','task':'Tarea','priority':'Prioridad','due':'Fecha límite','status':'Estado',
+    'add-goal':'Nueva meta','goal':'Meta','category':'Categoría','progress':'Progreso %','deadline':'Fecha límite',
+    'active-habits':'Hábitos activos','tasks-done':'Tareas completadas','active-goals':'Metas activas','completion':'Tasa de completado',
+    'no-habits':'Sin hábitos aún.','no-tasks':'Sin tareas aún.','no-goals':'Sin metas. ¡Sueña en grande!',
+    'appear':'🎨 Apariencia','theme':'Tema','display-name':'Nombre','save':'Guardar cambios',
+    'data':'📊 Datos','export':'⬇ Exportar','import':'⬆ Importar','clear':'🗑 Borrar todo',
+    high:'🔴 Alta',mid:'🟡 Media',low:'🟢 Baja',done:'✅ Hecho',inprogress:'⏳ En progreso',pending:'📌 Pendiente',cancelled:'❌ Cancelada',
+    health:'Salud',finance:'Finanzas',learning:'Aprendizaje',career:'Carrera',personal:'Personal',other:'Otro',
+    'th-task':'Tarea','th-pri':'Prioridad','th-due':'Fecha','th-status':'Estado','th-del':'Eliminar',
+    'qp1':'💡 Analiza mis hábitos','qp2':'📋 Sugiere tareas de hoy','qp3':'🎯 Ayúdame a establecer una meta','qp4':'⚡ ¿Cómo ser más productivo?',
+    'ai-welcome':'¡Hola! Soy tu Coach IA de PeakPlan. ¿En qué puedo ayudarte hoy?',
+    'ask-placeholder':'Pregunta lo que quieras...',
+    'habit-added':'Hábito añadido ✓','task-added':'Tarea añadida ✓','goal-added':'Meta añadida ✓',
+    'settings-saved':'Ajustes guardados ✓','exported':'Datos exportados ✓','imported':'Datos importados ✓','cleared':'Datos borrados',
+    'enter-habit':'Introduce el nombre del hábito','enter-task':'Introduce el nombre de la tarea','enter-goal':'Introduce la meta',
+  },
+  fr: {
+    dashboard:'Tableau de bord', habits:'Habitudes', tasks:'Tâches', goals:'Objectifs', ai:'Coach IA', settings:'Paramètres', main:'Principal', tools:'Outils',
+    'dash-title':'Bonjour ✦','dash-sub':'Aperçu de votre productivité','dash-upcoming':'Tâches à venir','dash-today-habits':'Habitudes du jour',
+    'habits-title':'Suivi des habitudes','habits-sub':'Construisez la constance jour après jour',
+    'tasks-title':'Gestionnaire de tâches','tasks-sub':'Organisez et accomplissez votre liste',
+    'goals-title':'Objectifs','goals-sub':'Fixez des jalons, suivez votre progression',
+    'ai-title':'Coach IA ✦','ai-sub':'Votre assistant personnel de productivité',
+    'settings-title':'Paramètres','settings-sub':'Personnalisez votre expérience',
+    'add-habit':'Nouvelle habitude','habit-name':"Nom de l'habitude",'habit-icon':'Icône','add':'+ Ajouter',
+    'add-task':'Nouvelle tâche','task':'Tâche','priority':'Priorité','due':'Date limite','status':'Statut',
+    'add-goal':'Nouvel objectif','goal':'Objectif','category':'Catégorie','progress':'Progrès %','deadline':'Échéance',
+    'active-habits':'Habitudes actives','tasks-done':'Tâches complétées','active-goals':'Objectifs actifs','completion':'Taux de complétion',
+    'no-habits':'Pas encore d\'habitudes.','no-tasks':'Pas encore de tâches.','no-goals':'Pas encore d\'objectifs. Rêvez grand !',
+    'appear':'🎨 Apparence','theme':'Thème','display-name':'Nom affiché','save':'Enregistrer',
+    'data':'📊 Données','export':'⬇ Exporter','import':'⬆ Importer','clear':'🗑 Effacer tout',
+    high:'🔴 Haute',mid:'🟡 Moyenne',low:'🟢 Basse',done:'✅ Fait',inprogress:'⏳ En cours',pending:'📌 En attente',cancelled:'❌ Annulée',
+    health:'Santé',finance:'Finance',learning:'Apprentissage',career:'Carrière',personal:'Personnel',other:'Autre',
+    'th-task':'Tâche','th-pri':'Priorité','th-due':'Date','th-status':'Statut','th-del':'Supprimer',
+    'qp1':'💡 Analyse mes habitudes','qp2':'📋 Suggère des tâches','qp3':'🎯 Aide-moi à fixer un objectif','qp4':'⚡ Comment être plus productif ?',
+    'ai-welcome':'Bonjour ! Je suis votre Coach IA PeakPlan. Comment puis-je vous aider ?',
+    'ask-placeholder':'Posez votre question...',
+    'habit-added':'Habitude ajoutée ✓','task-added':'Tâche ajoutée ✓','goal-added':'Objectif ajouté ✓',
+    'settings-saved':'Paramètres enregistrés ✓','exported':'Données exportées ✓','imported':'Données importées ✓','cleared':'Données effacées',
+    'enter-habit':"Entrez le nom de l'habitude",'enter-task':'Entrez le nom de la tâche','enter-goal':"Entrez l'objectif",
+  },
+  tr: {
+    dashboard:'Pano', habits:'Alışkanlıklar', tasks:'Görevler', goals:'Hedefler', ai:'AI Koçu', settings:'Ayarlar', main:'Ana Menü', tools:'Araçlar',
+    'dash-title':'Günaydın ✦','dash-sub':'Verimlilik özetiniz','dash-upcoming':'Yaklaşan Görevler','dash-today-habits':'Bugünün Alışkanlıkları',
+    'habits-title':'Alışkanlık Takibi','habits-sub':'Her gün tutarlılık oluşturun',
+    'tasks-title':'Görev Yöneticisi','tasks-sub':'Organize edin ve başarın',
+    'goals-title':'Hedefler','goals-sub':'Kilometre taşları belirleyin',
+    'ai-title':'AI Koçu ✦','ai-sub':'Kişisel verimlilik asistanınız',
+    'settings-title':'Ayarlar','settings-sub':'Deneyiminizi özelleştirin',
+    'add-habit':'Yeni Alışkanlık','habit-name':'Alışkanlık Adı','habit-icon':'Simge','add':'+ Ekle',
+    'add-task':'Yeni Görev','task':'Görev','priority':'Öncelik','due':'Bitiş Tarihi','status':'Durum',
+    'add-goal':'Yeni Hedef','goal':'Hedef','category':'Kategori','progress':'İlerleme %','deadline':'Son Tarih',
+    'active-habits':'Aktif Alışkanlıklar','tasks-done':'Tamamlanan Görevler','active-goals':'Aktif Hedefler','completion':'Tamamlanma Oranı',
+    'no-habits':'Henüz alışkanlık yok.','no-tasks':'Henüz görev yok.','no-goals':'Henüz hedef yok. Büyük düşün!',
+    'appear':'🎨 Görünüm','theme':'Tema','display-name':'Görünen Ad','save':'Değişiklikleri Kaydet',
+    'data':'📊 Veriler','export':'⬇ Dışa Aktar','import':'⬆ İçe Aktar','clear':'🗑 Tümünü Sil',
+    high:'🔴 Yüksek',mid:'🟡 Orta',low:'🟢 Düşük',done:'✅ Tamamlandı',inprogress:'⏳ Devam Ediyor',pending:'📌 Bekliyor',cancelled:'❌ İptal',
+    health:'Sağlık',finance:'Finans',learning:'Öğrenme',career:'Kariyer',personal:'Kişisel',other:'Diğer',
+    'th-task':'Görev','th-pri':'Öncelik','th-due':'Tarih','th-status':'Durum','th-del':'Sil',
+    'qp1':'💡 Alışkanlıklarımı analiz et','qp2':'📋 Bugün için görev öner','qp3':'🎯 Hedef belirlememe yardım et','qp4':'⚡ Nasıl daha verimli olabilirim?',
+    'ai-welcome':'Merhaba! Ben PeakPlan AI Koçunuzum. Size nasıl yardımcı olabilirim?',
+    'ask-placeholder':'AI Koçunuza sorun...',
+    'habit-added':'Alışkanlık eklendi ✓','task-added':'Görev eklendi ✓','goal-added':'Hedef eklendi ✓',
+    'settings-saved':'Ayarlar kaydedildi ✓','exported':'Veriler dışa aktarıldı ✓','imported':'Veriler içe aktarıldı ✓','cleared':'Veriler silindi',
+    'enter-habit':'Alışkanlık adını girin','enter-task':'Görev adını girin','enter-goal':'Hedefi girin',
+  }
+};
+
+let lang = 'en';
+let t = T[lang];
+
+function tr(k) { return t[k] || T.en[k] || k; }
+
+function setLang(l) {
+  lang = l; t = T[l];
+  document.documentElement.lang = l;
+  document.documentElement.dir = t.dir || 'ltr';
+  applyTranslations();
+  save();
+}
+
+function applyTranslations() {
+  document.documentElement.dir = t.dir || 'ltr';
+  document.getElementById('nav-main-label').textContent = tr('main');
+  document.getElementById('nav-tools-label').textContent = tr('tools');
+  document.getElementById('nav-dashboard').textContent = tr('dashboard');
+  document.getElementById('nav-habits').textContent = tr('habits');
+  document.getElementById('nav-tasks').textContent = tr('tasks');
+  document.getElementById('nav-goals').textContent = tr('goals');
+  document.getElementById('nav-ai').textContent = tr('ai');
+  document.getElementById('nav-settings').textContent = tr('settings');
+  document.getElementById('dash-title').textContent = tr('dash-title');
+  document.getElementById('dash-sub').textContent = tr('dash-sub');
+  document.getElementById('dash-upcoming').textContent = tr('dash-upcoming');
+  document.getElementById('dash-today-habits').textContent = tr('dash-today-habits');
+  document.getElementById('habits-title').textContent = tr('habits-title');
+  document.getElementById('habits-sub').textContent = tr('habits-sub');
+  document.getElementById('tasks-title').textContent = tr('tasks-title');
+  document.getElementById('tasks-sub').textContent = tr('tasks-sub');
+  document.getElementById('goals-title').textContent = tr('goals-title');
+  document.getElementById('goals-sub').textContent = tr('goals-sub');
+  document.getElementById('ai-title').textContent = tr('ai-title');
+  document.getElementById('ai-sub').textContent = tr('ai-sub');
+  document.getElementById('settings-title').textContent = tr('settings-title');
+  document.getElementById('settings-sub').textContent = tr('settings-sub');
+  document.getElementById('ds-habits-l').textContent = tr('active-habits');
+  document.getElementById('ds-tasks-l').textContent = tr('tasks-done');
+  document.getElementById('ds-goals-l').textContent = tr('active-goals');
+  document.getElementById('ds-streak-l').textContent = tr('completion');
+  document.getElementById('add-habit-label').textContent = tr('add-habit');
+  document.getElementById('habit-name-label').textContent = tr('habit-name');
+  document.getElementById('habit-icon-label').textContent = tr('habit-icon');
+  document.getElementById('add-habit-btn').textContent = tr('add');
+  document.getElementById('no-habits-text').textContent = tr('no-habits');
+  document.getElementById('add-task-label').textContent = tr('add-task');
+  document.getElementById('task-name-l').textContent = tr('task');
+  document.getElementById('task-pri-l').textContent = tr('priority');
+  document.getElementById('task-date-l').textContent = tr('due');
+  document.getElementById('task-status-l').textContent = tr('status');
+  document.getElementById('add-task-btn').textContent = tr('add');
+  document.getElementById('no-tasks-text').textContent = tr('no-tasks');
+  document.getElementById('th-task').textContent = tr('th-task');
+  document.getElementById('th-pri').textContent = tr('th-pri');
+  document.getElementById('th-date').textContent = tr('th-due');
+  document.getElementById('th-status').textContent = tr('th-status');
+  document.getElementById('th-del').textContent = tr('th-del');
+  document.getElementById('st-total-l').textContent = tr('task');
+  document.getElementById('st-done-l').textContent = tr('done');
+  document.getElementById('st-prog-l').textContent = tr('inprogress');
+  document.getElementById('st-pend-l').textContent = tr('pending');
+  document.getElementById('pri-high').textContent = tr('high');
+  document.getElementById('pri-mid').textContent = tr('mid');
+  document.getElementById('pri-low').textContent = tr('low');
+  document.getElementById('s-inprog').textContent = tr('inprogress');
+  document.getElementById('s-pend').textContent = tr('pending');
+  document.getElementById('s-done').textContent = tr('done');
+  document.getElementById('s-cancel').textContent = tr('cancelled');
+  document.getElementById('add-goal-label').textContent = tr('add-goal');
+  document.getElementById('goal-name-l').textContent = tr('goal');
+  document.getElementById('goal-cat-l').textContent = tr('category');
+  document.getElementById('goal-pct-l').textContent = tr('progress');
+  document.getElementById('goal-dl-l').textContent = tr('deadline');
+  document.getElementById('add-goal-btn').textContent = tr('add');
+  document.getElementById('no-goals-text').textContent = tr('no-goals');
+  document.getElementById('gc-health').textContent = tr('health');
+  document.getElementById('gc-finance').textContent = tr('finance');
+  document.getElementById('gc-learn').textContent = tr('learning');
+  document.getElementById('gc-career').textContent = tr('career');
+  document.getElementById('gc-personal').textContent = tr('personal');
+  document.getElementById('gc-other').textContent = tr('other');
+  document.getElementById('qp1').textContent = tr('qp1');
+  document.getElementById('qp2').textContent = tr('qp2');
+  document.getElementById('qp3').textContent = tr('qp3');
+  document.getElementById('qp4').textContent = tr('qp4');
+  document.getElementById('aiInput').placeholder = tr('ask-placeholder');
+  document.getElementById('set-appear').textContent = tr('appear');
+  document.getElementById('set-theme-l').textContent = tr('theme');
+  document.getElementById('set-name-l').textContent = tr('display-name');
+  document.getElementById('save-settings-btn').textContent = tr('save');
+  document.getElementById('set-data').textContent = tr('data');
+  document.getElementById('export-btn').textContent = tr('export');
+  document.getElementById('clear-btn').textContent = tr('clear');
+  renderTasks(); renderGoals(); renderDash();
+}
+
+// ── STATE ──
+let state = { habits:[], tasks:[], goals:[], habitData:{}, currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear() };
+
+function save() {
+  const key = localStorage.getItem('pp_license') || 'default';
+  localStorage.setItem('pp_data_' + key, JSON.stringify(state));
+}
+
+function loadData() {
+  const key = localStorage.getItem('pp_license') || 'default';
+  try {
+    const stored = localStorage.getItem('pp_data_' + key);
+    return stored ? JSON.parse(stored) : { habits:[], tasks:[], goals:[], habitData:{}, currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear() };
+  } catch { return { habits:[], tasks:[], goals:[], habitData:{}, currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear() }; }
+}
+
+function initApp(licenseKey) {
+  document.getElementById('licenseScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  state = loadData();
+  const savedLang = localStorage.getItem('pp_lang') || 'en';
+  lang = savedLang; t = T[lang];
+  document.querySelector('.lang-select').value = lang;
+  const savedName = localStorage.getItem('pp_name') || 'Pro User';
+  document.getElementById('userName').textContent = savedName;
+  document.getElementById('userAvatar').textContent = savedName[0].toUpperCase();
+  document.getElementById('setName').value = savedName;
+  applyTranslations();
+  updateDate();
+  renderHabits();
+  renderTasks();
+  renderGoals();
+  renderDash();
+  switchPage('dashboard', document.querySelector('.nav-item'));
+}
+
+// ── NAVIGATION ──
+function switchPage(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('sec-' + page).classList.add('active');
+  if (page === 'tasks') updateTaskStats();
+  if (page === 'dashboard') renderDash();
+  if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function updateDate() {
+  const d = new Date();
+  document.getElementById('topDate').textContent = d.toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang + '-' + lang.toUpperCase(), { weekday:'short', month:'short', day:'numeric' });
+}
+
+// ── EMOJI ──
+let selEmojiVal = '⭐';
+function selEmoji(el) {
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel'); selEmojiVal = el.dataset.e;
+}
+
+// ── HABITS ──
+function addHabit() {
+  const name = document.getElementById('newHabitName').value.trim();
+  if (!name) return toast(tr('enter-habit'));
+  state.habits.push({ id: Date.now(), name, emoji: selEmojiVal });
+  document.getElementById('newHabitName').value = '';
+  save(); renderHabits(); toast(tr('habit-added'));
+}
+
+function deleteHabit(id) { state.habits = state.habits.filter(h => h.id !== id); save(); renderHabits(); }
+
+function changeMonth(d) {
+  state.currentMonth += d;
+  if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; }
+  if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; }
+  renderHabits();
+}
+
+function renderHabits() {
+  const { currentMonth: m, currentYear: y, habits } = state;
+  const days = new Date(y, m+1, 0).getDate();
+  const mNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('monthTitle').textContent = mNames[m] + ' ' + y;
+  const empty = document.getElementById('habitEmpty');
+  const grid = document.getElementById('habitGrid');
+  if (!habits.length) { grid.style.display='none'; empty.style.display='block'; return; }
+  grid.style.display='table'; empty.style.display='none';
+  let head = '<tr><th style="text-align:left;padding-left:14px">' + tr('habits') + '</th>';
+  for (let i=1;i<=days;i++) head += `<th>${i}</th>`;
+  head += '<th>%</th></tr>';
+  document.getElementById('habitHead').innerHTML = head;
+  let body = '';
+  habits.forEach(h => {
+    let tot = 0;
+    let row = `<tr><td><div class="habit-name-row"><button class="habit-del" onclick="deleteHabit(${h.id})">×</button><span>${h.emoji}</span><span>${h.name}</span></div></td>`;
+    for (let d=1;d<=days;d++) {
+      const k = `${h.id}-${y}-${m}-${d}`;
+      const chk = state.habitData[k] ? 'checked' : '';
+      if (state.habitData[k]) tot++;
+      row += `<td><input type="checkbox" ${chk} onchange="toggleHabit('${k}',this)"></td>`;
+    }
+    const pct = Math.round((tot/days)*100);
+    row += `<td class="habit-total">${pct}%<div class="pbar"><div class="pbar-fill" style="width:${pct}%"></div></div></td></tr>`;
+    body += row;
+  });
+  document.getElementById('habitBody').innerHTML = body;
+}
+
+function toggleHabit(k, el) { state.habitData[k] = el.checked; save(); renderHabits(); }
+
+// ── TASKS ──
+function addTask() {
+  const name = document.getElementById('taskName').value.trim();
+  if (!name) return toast(tr('enter-task'));
+  state.tasks.unshift({ id: Date.now(), name, priority: document.getElementById('taskPri').value, date: document.getElementById('taskDate').value, status: document.getElementById('taskStatus').value, done: false });
+  document.getElementById('taskName').value = '';
+  save(); renderTasks(); updateTaskStats(); toast(tr('task-added'));
+}
+
+function toggleTask(id) {
+  const task = state.tasks.find(x => x.id === id);
+  if (task) { task.done = !task.done; task.status = task.done ? 'done' : 'inprogress'; }
+  save(); renderTasks(); updateTaskStats();
+}
+
+function deleteTask(id) { state.tasks = state.tasks.filter(x => x.id !== id); save(); renderTasks(); updateTaskStats(); }
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  const empty = document.getElementById('taskEmpty');
+  if (!state.tasks.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  list.innerHTML = state.tasks.map(x => `
+    <div class="task-row ${x.done?'done':''}">
+      <input type="checkbox" class="task-cb" ${x.done?'checked':''} onchange="toggleTask(${x.id})">
+      <span class="task-name">${x.name}</span>
+      <span class="badge b-${x.priority}">${tr(x.priority)}</span>
+      <span style="font-size:12px;color:var(--text-muted)">${x.date||'—'}</span>
+      <span class="badge b-${x.status}">${tr(x.status)}</span>
+      <button class="btn btn-danger" onclick="deleteTask(${x.id})" style="padding:5px 10px;font-size:11px">${tr('th-del')}</button>
+    </div>`).join('');
+}
+
+function updateTaskStats() {
+  document.getElementById('st-total').textContent = state.tasks.length;
+  document.getElementById('st-done').textContent = state.tasks.filter(t => t.status==='done').length;
+  document.getElementById('st-prog').textContent = state.tasks.filter(t => t.status==='inprogress').length;
+  document.getElementById('st-pend').textContent = state.tasks.filter(t => t.status==='pending').length;
+}
+
+// ── GOALS ──
+function addGoal() {
+  const name = document.getElementById('goalName').value.trim();
+  if (!name) return toast(tr('enter-goal'));
+  const pct = Math.min(100, Math.max(0, parseInt(document.getElementById('goalPct').value)||0));
+  state.goals.push({ id: Date.now(), name, category: document.getElementById('goalCat').value, pct, deadline: document.getElementById('goalDL').value });
+  document.getElementById('goalName').value = '';
+  document.getElementById('goalPct').value = '';
+  save(); renderGoals(); toast(tr('goal-added'));
+}
+
+function deleteGoal(id) { state.goals = state.goals.filter(g => g.id !== id); save(); renderGoals(); }
+
+function renderGoals() {
+  const grid = document.getElementById('goalsGrid');
+  const empty = document.getElementById('goalEmpty');
+  if (!state.goals.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = state.goals.map(g => `
+    <div class="goal-card">
+      <button class="goal-del" onclick="deleteGoal(${g.id})">×</button>
+      <div class="goal-cat">${g.category}</div>
+      <div class="goal-name">${g.name}</div>
+      <div class="goal-pct"><span>${tr('progress')}</span><span>${g.pct}%</span></div>
+      <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.pct}%"></div></div>
+      <div class="goal-deadline">${g.deadline ? '📅 ' + g.deadline : ''}</div>
+    </div>`).join('');
+}
+
+// ── DASHBOARD ──
+function renderDash() {
+  document.getElementById('ds-habits').textContent = state.habits.length;
+  document.getElementById('ds-tasks').textContent = state.tasks.filter(t => t.status==='done').length;
+  document.getElementById('ds-goals').textContent = state.goals.length;
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.done).length;
+  document.getElementById('ds-streak').textContent = total ? Math.round((done/total)*100)+'%' : '0%';
+  const upcoming = state.tasks.filter(t => !t.done).slice(0,5);
+  const dtEl = document.getElementById('dashTasks');
+  if (!upcoming.length) { dtEl.innerHTML = `<div style="font-size:13px;color:var(--text-dim);padding:20px 0;text-align:center">${tr('no-tasks')}</div>`; }
+  else { dtEl.innerHTML = upcoming.map(t => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text)">${t.name}</span><span class="badge b-${t.priority}">${tr(t.priority)}</span></div>`).join(''); }
+  const today = new Date();
+  const d = today.getDate(), m = today.getMonth(), y = today.getFullYear();
+  const dhEl = document.getElementById('dashHabits');
+  if (!state.habits.length) { dhEl.innerHTML = `<div style="font-size:13px;color:var(--text-dim);padding:20px 0;text-align:center">${tr('no-habits')}</div>`; }
+  else { dhEl.innerHTML = state.habits.map(h => { const k=`${h.id}-${y}-${m}-${d}`; const done=state.habitData[k]; return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${h.emoji} ${h.name}</span><span style="color:${done?'var(--success)':'var(--text-dim)'}">${done?'✓':'○'}</span></div>`; }).join(''); }
+}
+
+// ── AI COACH ──
+async function sendAI() {
+  const GEMINI_API_KEY = "AQ.Ab8RN6LCdD7JyFWsLUIxfk47PA0Za_gTu_159RRSDEhNrSwRlg";
+  const msg = document.getElementById('aiInput').value.trim();
+  if (!msg) return;
+  appendMsg('user', msg);
+  document.getElementById('aiInput').value = '';
+  document.getElementById('aiTyping').style.display = 'flex';
+  document.getElementById('aiSendBtn').disabled = true;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: msg }] }] })
+    });
+    const data = await res.json();
+    document.getElementById('aiTyping').style.display = 'none';
+    if (data.candidates && data.candidates[0].content.parts[0].text) {
+      appendMsg('ai', data.candidates[0].content.parts[0].text);
+    } else {
+      appendMsg('ai', 'Sorry, I could not respond right now.');
+    }
+  } catch(e) {
+    document.getElementById('aiTyping').style.display = 'none';
+    appendMsg('ai', 'Connection error. Please try again.');
+  }
+  document.getElementById('aiSendBtn').disabled = false;
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-avatar">${role==='ai'?'✨':'👤'}</div><div class="msg-bubble"></div>`;
+  msgs.appendChild(div);
+  const bubble = div.querySelector('.msg-bubble');
+  if (role === 'user') {
+    bubble.textContent = text;
+    msgs.scrollTop = msgs.scrollHeight;
+  } else {
+    const formatted = typeof marked !== 'undefined' ? marked.parse(text) : text;
+    let idx = 0;
+    const tokens = formatted.match(/[^ ]+ +|[^ ]+/g) || [formatted];
+    let cur = '';
+    const interval = setInterval(() => {
+      if (idx < tokens.length) { cur += tokens[idx]; bubble.innerHTML = cur; msgs.scrollTop = msgs.scrollHeight; idx++; }
+      else clearInterval(interval);
+    }, 30);
+  }
+}
+
+function quickPrompt(el) {
+  document.getElementById('aiInput').value = el.textContent;
+  sendAI();
+}
+
+document.getElementById('aiInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
+});
+
+// ── SETTINGS ──
+function applyTheme(el) {
+  document.querySelectorAll('.cswatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  const r = document.documentElement.style;
+  r.setProperty('--bg', el.dataset.bg);
+  r.setProperty('--surface', el.dataset.s);
+  r.setProperty('--surface2', el.dataset.s2);
+  r.setProperty('--border', el.dataset.b);
+  r.setProperty('--gold', el.dataset.g);
+  r.setProperty('--gold2', el.dataset.g);
+  r.setProperty('--accent', el.dataset.g);
+}
+
+function saveSettings() {
+  const name = document.getElementById('setName').value.trim();
+  if (name) {
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userAvatar').textContent = name[0].toUpperCase();
+    localStorage.setItem('pp_name', name);
+  }
+  localStorage.setItem('pp_lang', lang);
+  save();
+  toast(tr('settings-saved'));
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'peakplan-backup.json';
+  a.click();
+  toast(tr('exported'));
+}
+
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      state = JSON.parse(ev.target.result);
+      save(); renderHabits(); renderTasks(); renderGoals(); renderDash();
+      toast(tr('imported'));
+    } catch { toast('Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Are you sure? This will delete all your data.')) return;
+  state = { habits:[], tasks:[], goals:[], habitData:{}, currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear() };
+  save(); renderHabits(); renderTasks(); renderGoals(); renderDash();
+  toast(tr('cleared'));
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

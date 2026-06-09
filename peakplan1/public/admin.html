@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PeakPlan Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F0E0C; --surface: #1C1917; --surface2: #242118;
+  --border: #2E2A24; --gold: #C9A84C; --gold2: #E8C96A;
+  --cream: #F5F0E8; --text: #E8E0D0; --text-muted: #7A7060;
+  --danger: #C47070; --success: #6B9E78; --warning: #C9A84C;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); font-family:'Outfit',sans-serif; color:var(--text); min-height:100vh; }
+
+/* LOGIN */
+#loginScreen {
+  position:fixed; inset:0; z-index:999;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:20px;
+}
+.login-logo { font-family:'Cormorant Garamond',serif; font-size:42px; color:var(--cream); }
+.login-logo span { color:var(--gold); }
+.login-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:36px; width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.login-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block; }
+.login-input {
+  width:100%; padding:12px 14px; background:var(--bg);
+  border:1px solid var(--border); border-radius:8px;
+  font-family:'Outfit',sans-serif; font-size:14px; color:var(--text);
+  outline:none; margin-bottom:14px; transition:border-color 0.2s;
+}
+.login-input:focus { border-color:var(--gold); }
+.login-btn {
+  width:100%; padding:13px; background:var(--gold); color:#0F0E0C;
+  border:none; border-radius:8px; font-family:'Outfit',sans-serif;
+  font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s;
+}
+.login-btn:hover { background:var(--gold2); }
+.login-err { font-size:12px; color:var(--danger); text-align:center; margin-top:10px; display:none; }
+.google-btn {
+  width:100%; padding:12px; background:var(--surface2); color:var(--text);
+  border:1px solid var(--border); border-radius:8px;
+  font-family:'Outfit',sans-serif; font-size:13px; cursor:pointer;
+  transition:all 0.2s; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.google-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+/* APP */
+#adminApp { display:none; }
+
+header {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+.header-logo { font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--cream); }
+.header-logo span { color:var(--gold); }
+.header-badge { background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--gold); letter-spacing:1px; }
+.logout-btn { background:transparent; border:1px solid var(--border); color:var(--text-muted); border-radius:8px; padding:7px 14px; font-family:'Outfit',sans-serif; font-size:12px; cursor:pointer; transition:all 0.2s; }
+.logout-btn:hover { border-color:var(--danger); color:var(--danger); }
+
+main { max-width:1100px; margin:0 auto; padding:36px 24px; }
+
+/* STATS */
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+.stat { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; position:relative; overflow:hidden; }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--gold),transparent); }
+.stat-n { font-family:'Cormorant Garamond',serif; font-size:38px; color:var(--cream); line-height:1; }
+.stat-l { font-size:11px; color:var(--text-muted); margin-top:6px; text-transform:uppercase; letter-spacing:1px; }
+
+/* TABS */
+.tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:24px; width:fit-content; }
+.tab { padding:9px 20px; border-radius:7px; font-size:13px; font-weight:500; color:var(--text-muted); cursor:pointer; transition:all 0.2s; }
+.tab.active { background:var(--gold); color:#0F0E0C; font-weight:600; }
+
+/* SECTIONS */
+.section { display:none; }
+.section.active { display:block; }
+
+/* TABLE */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th { padding:10px 14px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); background:var(--surface2); text-align:left; }
+th:first-child { border-radius:8px 0 0 8px; }
+th:last-child { border-radius:0 8px 8px 0; }
+td { padding:14px; font-size:13px; color:var(--text); border-bottom:1px solid var(--border); vertical-align:middle; }
+tr:hover td { background:rgba(255,255,255,0.02); }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; }
+.b-pending { background:rgba(201,168,76,0.15); color:var(--gold); }
+.b-approved { background:rgba(107,158,120,0.15); color:#8abe9a; }
+.b-rejected { background:rgba(196,112,112,0.15); color:#e09090; }
+.b-active { background:rgba(107,158,120,0.15); color:#8abe9a; }
+.b-inactive { background:rgba(196,112,112,0.15); color:#e09090; }
+
+.btn { padding:7px 14px; border:none; border-radius:7px; font-family:'Outfit',sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; }
+.btn-approve { background:rgba(107,158,120,0.2); color:#8abe9a; border:1px solid rgba(107,158,120,0.3); }
+.btn-approve:hover { background:var(--success); color:#fff; }
+.btn-reject { background:rgba(196,112,112,0.15); color:#e09090; border:1px solid rgba(196,112,112,0.2); }
+.btn-reject:hover { background:var(--danger); color:#fff; }
+.btn-delete { background:rgba(196,112,112,0.15); color:#e09090; border:1px solid rgba(196,112,112,0.2); font-size:11px; padding:5px 10px; }
+.btn-delete:hover { background:var(--danger); color:#fff; }
+.btn-key { background:rgba(201,168,76,0.15); color:var(--gold); border:1px solid rgba(201,168,76,0.2); }
+.btn-key:hover { background:var(--gold); color:#0F0E0C; }
+
+.actions { display:flex; gap:6px; }
+
+/* ADD KEY */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; margin-bottom:20px; }
+.card-title { font-size:13px; font-weight:600; color:var(--cream); margin-bottom:16px; }
+.form-row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+.form-group { display:flex; flex-direction:column; gap:6px; flex:1; min-width:160px; }
+.form-label { font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+.form-input { padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-family:'Outfit',sans-serif; font-size:13px; color:var(--text); outline:none; transition:border-color 0.2s; }
+.form-input:focus { border-color:var(--gold); }
+.btn-gold { background:var(--gold); color:#0F0E0C; font-weight:600; padding:10px 20px; border-radius:8px; border:none; font-family:'Outfit',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; }
+.btn-gold:hover { background:var(--gold2); }
+
+.empty { text-align:center; padding:40px; color:var(--text-muted); font-size:13px; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; z-index:9999; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; font-size:13px; color:var(--text); box-shadow:0 8px 30px rgba(0,0,0,0.4); opacity:0; transform:translateY(10px); transition:all 0.3s; pointer-events:none; }
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* KEY COPY */
+.key-code { font-family:monospace; background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:3px 8px; font-size:12px; color:var(--gold); cursor:pointer; }
+.key-code:hover { background:rgba(201,168,76,0.1); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">Peak<span>Plan</span> <span style="font-size:18px;color:var(--text-muted);font-family:'Outfit',sans-serif">Admin</span></div>
+  <div class="login-card">
+    <button class="google-btn" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:12px">— or —</div>
+    <label class="login-label">Email</label>
+    <input class="login-input" type="email" id="adminEmail" placeholder="admin@gmail.com">
+    <label class="login-label">Password</label>
+    <input class="login-input" type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginEmail()">
+    <button class="login-btn" onclick="loginEmail()">Sign In →</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="adminApp">
+  <header>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="header-logo">Peak<span>Plan</span></div>
+      <div class="header-badge">⚡ ADMIN</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:12px;color:var(--text-muted)" id="adminEmailDisplay"></span>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n" id="s-pending">0</div>
+        <div class="stat-l">⏳ Pending Requests</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="s-users">0</div>
+        <div class="stat-l">👥 Total Users</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="s-keys">0</div>
+        <div class="stat-l">🔑 Active Keys</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="s-revenue">$0</div>
+        <div class="stat-l">💰 Est. Revenue</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('requests',this)">⏳ Requests</div>
+      <div class="tab" onclick="switchTab('users',this)">👥 Users</div>
+      <div class="tab" onclick="switchTab('keys',this)">🔑 License Keys</div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="section active" id="sec-requests">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="requestsBody">
+            <tr><td colspan="5" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="sec-users">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="5" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LICENSE KEYS -->
+    <div class="section" id="sec-keys">
+      <div class="card">
+        <div class="card-title">🔑 Generate New License Key</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Key (auto or custom)</label>
+            <input class="form-input" type="text" id="newKey" placeholder="PEAK-XXXX-XXXX">
+          </div>
+          <div class="form-group" style="flex:0;min-width:120px">
+            <label class="form-label">Price ($)</label>
+            <input class="form-input" type="number" id="keyPrice" placeholder="15" min="0">
+          </div>
+          <div class="form-group" style="flex:0;min-width:120px">
+            <label class="form-label">Note</label>
+            <input class="form-input" type="text" id="keyNote" placeholder="Customer name...">
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <button class="btn btn-key" onclick="genKey()">⚡ Auto Generate</button>
+            <button class="btn-gold" onclick="addKey()">+ Add Key</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Note</th>
+              <th>Price</th>
+              <th>Created</th>
+              <th>Used By</th>
+              <th>Status</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="keysBody">
+            <tr><td colspan="7" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── CONFIG ── (same as your index.html)
+const firebaseConfig = {
+  apiKey: "AIzaSyD69uuZwQmw9pVgfkwLg3JMOT370YPxMpY",
+  authDomain: "peakplan-cb977.firebaseapp.com",
+  projectId: "peakplan-cb977",
+  storageBucket: "peakplan-cb977.firebasestorage.app",
+  messagingSenderId: "523461637205",
+  appId: "1:523461637205:web:4fa32b03a8281d2e6fd0dc"
+};
+
+const ADMIN_EMAIL = 'ghalebalkofahi1@gmail.com';
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ── AUTH ──
+window.loginEmail = async () => {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass = document.getElementById('adminPass').value;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    showErr(e.message);
+  }
+};
+
+window.loginGoogle = async () => {
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch(e) {
+    showErr(e.message);
+  }
+};
+
+window.doLogout = async () => {
+  await signOut(auth);
+};
+
+function showErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (user && user.email === ADMIN_EMAIL) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    document.getElementById('adminEmailDisplay').textContent = user.email;
+    loadAll();
+  } else if (user && user.email !== ADMIN_EMAIL) {
+    await signOut(auth);
+    showErr('Access denied. Admin only.');
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminApp').style.display = 'none';
+  }
+});
+
+// ── LOAD ALL ──
+function loadAll() {
+  loadRequests();
+  loadUsers();
+  loadKeys();
+}
+
+// ── REQUESTS ──
+async function loadRequests() {
+  const snap = await getDocs(collection(db, 'requests'));
+  const tbody = document.getElementById('requestsBody');
+  const rows = [];
+  let pending = 0;
+
+  snap.forEach(d => {
+    const r = d.data();
+    if (r.status === 'pending') pending++;
+    const date = r.createdAt?.toDate?.()?.toLocaleDateString() || '—';
+    rows.push(`
+      <tr>
+        <td>${r.name || '—'}</td>
+        <td>${r.email || '—'}</td>
+        <td>${date}</td>
+        <td><span class="badge b-${r.status}">${r.status}</span></td>
+        <td>
+          <div class="actions">
+            ${r.status === 'pending' ? `
+              <button class="btn btn-approve" onclick="approveRequest('${d.id}','${r.email}','${r.name}')">✓ Approve</button>
+              <button class="btn btn-reject" onclick="rejectRequest('${d.id}','${r.email}')">✗ Reject</button>
+            ` : `<span style="font-size:12px;color:var(--text-muted)">${r.status}</span>`}
+          </div>
+        </td>
+      </tr>`);
+  });
+
+  document.getElementById('s-pending').textContent = pending;
+  tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" class="empty">No requests yet</td></tr>';
+}
+
+// ── APPROVE ──
+window.approveRequest = async (id, email, name) => {
+  // Generate a key for this user
+  const key = 'PEAK-' + Math.random().toString(36).substr(2,4).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+
+  await updateDoc(doc(db, 'requests', id), { status: 'approved', key, approvedAt: serverTimestamp() });
+
+  // Add to approved users
+  await setDoc(doc(db, 'approvedUsers', email.replace('.','_')), {
+    email, name, key, status: 'active', approvedAt: serverTimestamp()
+  });
+
+  // Add key to keys collection
+  await setDoc(doc(db, 'licenseKeys', key), {
+    key, note: name, price: 0, usedBy: email, status: 'used', createdAt: serverTimestamp()
+  });
+
+  toast('✓ Approved! Key: ' + key);
+  loadAll();
+};
+
+// ── REJECT ──
+window.rejectRequest = async (id, email) => {
+  await updateDoc(doc(db, 'requests', id), { status: 'rejected', rejectedAt: serverTimestamp() });
+  toast('✗ Request rejected');
+  loadAll();
+};
+
+// ── USERS ──
+async function loadUsers() {
+  const snap = await getDocs(collection(db, 'approvedUsers'));
+  const tbody = document.getElementById('usersBody');
+  const rows = [];
+
+  snap.forEach(d => {
+    const u = d.data();
+    const date = u.approvedAt?.toDate?.()?.toLocaleDateString() || '—';
+    rows.push(`
+      <tr>
+        <td>${u.name || '—'}</td>
+        <td>${u.email || '—'}</td>
+        <td>${date}</td>
+        <td><span class="badge b-${u.status || 'active'}">${u.status || 'active'}</span></td>
+        <td>
+          <div class="actions">
+            ${u.status === 'active'
+              ? `<button class="btn btn-reject" onclick="toggleUser('${d.id}','inactive')">🚫 Deactivate</button>`
+              : `<button class="btn btn-approve" onclick="toggleUser('${d.id}','active')">✓ Activate</button>`
+            }
+            <button class="btn btn-delete" onclick="deleteUser('${d.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`);
+  });
+
+  document.getElementById('s-users').textContent = snap.size;
+  tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5" class="empty">No users yet</td></tr>';
+}
+
+window.toggleUser = async (id, status) => {
+  await updateDoc(doc(db, 'approvedUsers', id), { status });
+  toast(status === 'active' ? '✓ User activated' : '🚫 User deactivated');
+  loadUsers();
+};
+
+window.deleteUser = async (id) => {
+  if (!confirm('Delete this user?')) return;
+  await deleteDoc(doc(db, 'approvedUsers', id));
+  toast('🗑 User deleted');
+  loadUsers();
+};
+
+// ── KEYS ──
+async function loadKeys() {
+  const snap = await getDocs(collection(db, 'licenseKeys'));
+  const tbody = document.getElementById('keysBody');
+  const rows = [];
+  let activeKeys = 0;
+  let revenue = 0;
+
+  snap.forEach(d => {
+    const k = d.data();
+    if (k.status === 'active') activeKeys++;
+    if (k.price) revenue += Number(k.price);
+    const date = k.createdAt?.toDate?.()?.toLocaleDateString() || '—';
+    rows.push(`
+      <tr>
+        <td><span class="key-code" onclick="copyKey('${k.key}')" title="Click to copy">${k.key}</span></td>
+        <td>${k.note || '—'}</td>
+        <td>$${k.price || 0}</td>
+        <td>${date}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${k.usedBy || '—'}</td>
+        <td><span class="badge b-${k.status === 'used' ? 'inactive' : 'active'}">${k.status || 'active'}</span></td>
+        <td><button class="btn btn-delete" onclick="deleteKey('${d.id}')">🗑</button></td>
+      </tr>`);
+  });
+
+  document.getElementById('s-keys').textContent = activeKeys;
+  document.getElementById('s-revenue').textContent = '$' + revenue;
+  tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="7" class="empty">No keys yet</td></tr>';
+}
+
+window.genKey = () => {
+  const key = 'PEAK-' + Math.random().toString(36).substr(2,4).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+  document.getElementById('newKey').value = key;
+};
+
+window.addKey = async () => {
+  const key = document.getElementById('newKey').value.trim();
+  const price = document.getElementById('keyPrice').value || 0;
+  const note = document.getElementById('keyNote').value.trim();
+  if (!key) return toast('Enter a key first');
+  await setDoc(doc(db, 'licenseKeys', key), { key, price: Number(price), note, status: 'active', usedBy: null, createdAt: serverTimestamp() });
+  document.getElementById('newKey').value = '';
+  document.getElementById('keyPrice').value = '';
+  document.getElementById('keyNote').value = '';
+  toast('🔑 Key added: ' + key);
+  loadKeys();
+};
+
+window.deleteKey = async (id) => {
+  if (!confirm('Delete this key?')) return;
+  await deleteDoc(doc(db, 'licenseKeys', id));
+  toast('🗑 Key deleted');
+  loadKeys();
+};
+
+window.copyKey = (key) => {
+  navigator.clipboard.writeText(key);
+  toast('📋 Copied: ' + key);
+};
+
+// ── TABS ──
+window.switchTab = (name, el) => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sec-' + name).classList.add('active');
+};
+
+// ── TOAST ──
+window.toast = (msg) => {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+};
+
+</script>
+</body>
+</html>
